@@ -1,0 +1,4 @@
+{
+    "ROS2.distro": "humble",
+    "cmake.ignoreCMakeListsMissing": true
+}

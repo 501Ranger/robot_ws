@@ -1,0 +1,7 @@
+build/
+install/
+log/
+*.db
+*.db-shm
+*.db-wal
+.vscode/browse.vc.db-shmcu

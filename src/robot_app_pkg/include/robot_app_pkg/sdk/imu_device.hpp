@@ -2,6 +2,8 @@
 #define __IMU_DEVICE_HPP
 
 #include <fstream>
+#include <sstream>
+#include <vector>
 
 #include "robot_app_pkg/sdk/device_base.hpp"
 namespace robot_sdk {

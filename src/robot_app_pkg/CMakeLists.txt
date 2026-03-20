@@ -7,13 +7,16 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 include_directories(include)
 
 add_executable(robot_node src/node/main_node.cpp)
 
-ament_target_dependencies(robot_node rclcpp std_msgs)
+ament_target_dependencies(robot_node rclcpp std_msgs sensor_msgs tf2_ros geometry_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -32,4 +35,9 @@ endif()
 install(TARGETS
   robot_node
   DESTINATION lib/${PROJECT_NAME})
+install(DIRECTORY
+  launch
+  rviz
+  DESTINATION share/${PROJECT_NAME}
+)
 ament_package()

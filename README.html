@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>robot&lowbar;ws</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="robot_ws">robot_ws</h1>
+<p>一个基于 ROS 2 的机器人应用示例工作区，当前包含 <code>robot_app_pkg</code> 包，用于演示底盘设备抽象、IMU 数据接入、任务调度、TF 发布以及 RViz 可视化。</p>
+<p>项目重点不是完整机器人系统，而是提供一个清晰、可扩展的设备接入骨架，便于继续接串口传感器、替换数据源或扩展更多 ROS 话题。</p>
+<h2 id="功能概览">功能概览</h2>
+<ul>
+<li>基于 <code>ament_cmake</code> 的 ROS 2 C++ 工程</li>
+<li>统一的设备抽象基类 <code>DeviceBase</code></li>
+<li>通过 <code>DeviceFactory</code> 按类型创建底盘和 IMU 设备</li>
+<li>支持两种 IMU 数据来源</li>
+<li><code>JY62</code> 串口 IMU</li>
+<li><code>CSV</code> 文件模拟 IMU 数据</li>
+<li>内置简单任务调度器，支持后台线程执行采集任务</li>
+<li>发布标准 ROS 2 消息</li>
+<li><code>sensor_msgs/msg/Imu</code></li>
+<li><code>geometry_msgs/msg/PoseStamped</code></li>
+<li><code>std_msgs/msg/String</code></li>
+<li>发布静态 TF：<code>map -&gt; imu_link</code></li>
+<li>提供 RViz 启动文件，便于直接查看 IMU 数据</li>
+</ul>
+<h2 id="项目结构">项目结构</h2>
+<pre><code class="language-text">robot_ws/
+├── imu_data.csv
+├── README.md
+└── src/
+    └── robot_app_pkg/
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── include/robot_app_pkg/
+        │   ├── task_scheduler_base.hpp
+        │   └── sdk/
+        │       ├── device_base.hpp
+        │       ├── device_factory.hpp
+        │       ├── chassis_device.hpp
+        │       ├── imu_device.hpp
+        │       └── jy62_imu_device.hpp
+        ├── src/node/main_node.cpp
+        ├── launch/robot_with_rviz.launch.py
+        └── rviz/imu.rviz
+</code></pre>
+<h2 id="核心设计">核心设计</h2>
+<h3 id="1-设备抽象">1. 设备抽象</h3>
+<p>项目将所有硬件设备统一抽象为 <code>DeviceBase</code>，约定以下生命周期接口：</p>
+<ul>
+<li><code>init()</code></li>
+<li><code>start()</code></li>
+<li><code>stop()</code></li>
+<li><code>read_and_publish_data()</code></li>
+</ul>
+<p>这样做的好处是新增设备时只需要实现统一接口，不需要改动上层节点架构。</p>
+<h3 id="2-设备工厂">2. 设备工厂</h3>
+<p><code>DeviceFactory</code> 负责根据配置创建具体设备实例：</p>
+<ul>
+<li><code>CHASSIS</code> -&gt; <code>ChassisDevice</code></li>
+<li><code>IMU</code> / <code>CSV</code> -&gt; <code>IMUDevice</code></li>
+<li><code>JY62</code> -&gt; <code>JY62ImuDevice</code></li>
+</ul>
+<p>节点层不直接依赖具体实现，便于后续替换真实硬件或增加新型号传感器。</p>
+<h3 id="3-任务调度">3. 任务调度</h3>
+<p><code>TaskScheduler</code> 使用线程安全队列和工作线程执行任务。当前节点中已经创建了底盘采集任务和 IMU 采集任务的结构，适合作为后续扩展多设备并发采集的基础。</p>
+<h3 id="4-ros-节点职责">4. ROS 节点职责</h3>
+<p>主节点 <code>robot_core_node</code> 负责：</p>
+<ul>
+<li>初始化发布器</li>
+<li>读取运行参数</li>
+<li>创建并启动设备</li>
+<li>定时提交采集任务</li>
+<li>将原始 IMU 数据转换为标准 ROS 消息</li>
+<li>发布姿态相关话题和静态 TF</li>
+</ul>
+<h2 id="依赖环境">依赖环境</h2>
+<p>建议在 Linux 环境下使用，并预先安装 ROS 2。</p>
+<p>项目依赖如下：</p>
+<ul>
+<li><code>ament_cmake</code></li>
+<li><code>rclcpp</code></li>
+<li><code>geometry_msgs</code></li>
+<li><code>sensor_msgs</code></li>
+<li><code>std_msgs</code></li>
+<li><code>tf2_ros</code></li>
+<li><code>launch_ros</code></li>
+<li><code>rviz2</code></li>
+<li><code>ament_index_python</code></li>
+</ul>
+<h2 id="构建">构建</h2>
+<p>在工作区根目录执行：</p>
+<pre><code class="language-bash">colcon build
+<span class="hljs-built_in">source</span> install/setup.bash
+</code></pre>
+<p>如果只想编译当前包：</p>
+<pre><code class="language-bash">colcon build --packages-select robot_app_pkg
+<span class="hljs-built_in">source</span> install/setup.bash
+</code></pre>
+<h2 id="运行">运行</h2>
+<h3 id="启动节点">启动节点</h3>
+<pre><code class="language-bash">ros2 run robot_app_pkg robot_node
+</code></pre>
+<h3 id="使用-launch-启动节点和-rviz">使用 launch 启动节点和 RViz</h3>
+<pre><code class="language-bash">ros2 launch robot_app_pkg robot_with_rviz.launch.py
+</code></pre>
+<h2 id="运行参数">运行参数</h2>
+<p>节点当前支持以下 ROS 参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>类型</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>imu_source</code></td>
+<td>string</td>
+<td><code>JY62</code></td>
+<td>IMU 数据源，可选 <code>JY62</code> 或 <code>CSV</code></td>
+</tr>
+<tr>
+<td><code>imu_port</code></td>
+<td>string</td>
+<td><code>/dev/ttyUSB0</code></td>
+<td>JY62 串口设备路径</td>
+</tr>
+<tr>
+<td><code>imu_baud</code></td>
+<td>int</td>
+<td><code>115200</code></td>
+<td>JY62 串口波特率</td>
+</tr>
+</tbody>
+</table>
+<p>示例：</p>
+<pre><code class="language-bash">ros2 run robot_app_pkg robot_node --ros-args \
+  -p imu_source:=JY62 \
+  -p imu_port:=/dev/ttyUSB0 \
+  -p imu_baud:=115200
+</code></pre>
+<p>如果使用 CSV 模拟数据：</p>
+<pre><code class="language-bash">ros2 run robot_app_pkg robot_node --ros-args -p imu_source:=CSV
+</code></pre>
+<h2 id="发布话题">发布话题</h2>
+<table>
+<thead>
+<tr>
+<th>话题名</th>
+<th>消息类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sensor_data</code></td>
+<td><code>std_msgs/msg/String</code></td>
+<td>底盘状态或调试字符串</td>
+</tr>
+<tr>
+<td><code>imu/data</code></td>
+<td><code>sensor_msgs/msg/Imu</code></td>
+<td>IMU 标准数据</td>
+</tr>
+<tr>
+<td><code>imu/pose</code></td>
+<td><code>geometry_msgs/msg/PoseStamped</code></td>
+<td>从 IMU 姿态派生的位姿消息</td>
+</tr>
+</tbody>
+</table>
+<p>同时节点会发布静态坐标变换：</p>
+<ul>
+<li><code>map -&gt; imu_link</code></li>
+</ul>
+<h2 id="支持的-imu-数据源">支持的 IMU 数据源</h2>
+<h3 id="jy62-串口-imu">JY62 串口 IMU</h3>
+<p><code>JY62ImuDevice</code> 会从串口读取 JY62 数据帧，并解析出：</p>
+<ul>
+<li>线加速度 <code>ax, ay, az</code></li>
+<li>角速度 <code>gx, gy, gz</code></li>
+<li>欧拉角 <code>roll, pitch, yaw</code></li>
+</ul>
+<p>节点会进一步将欧拉角转换为四元数后发布到 <code>imu/data</code> 和 <code>imu/pose</code>。</p>
+<h3 id="csv-模拟-imu">CSV 模拟 IMU</h3>
+<p><code>IMUDevice</code> 会从工作区根目录下的 <code>imu_data.csv</code> 读取数据，并循环播放，适合没有实体设备时做联调或演示。</p>
+<h2 id="开发建议">开发建议</h2>
+<p>如果你准备继续扩展这个项目，推荐优先从下面几项入手：</p>
+<ul>
+<li>将更多设备接入 <code>DeviceFactory</code></li>
+<li>为不同设备拆分独立源码文件，而不是全部放在头文件中</li>
+<li>为 <code>robot_core_node</code> 增加参数化话题名和坐标系配置</li>
+<li>为 IMU 和底盘增加单元测试或集成测试</li>
+<li>增加真实底盘控制指令和状态反馈消息</li>
+<li>完善异常处理和日志分级</li>
+</ul>
+<h2 id="当前已知限制">当前已知限制</h2>
+<ul>
+<li><code>package.xml</code> 中的描述和版本信息仍是占位内容，后续建议补全</li>
+<li>当前代码里 IMU 采集任务提交逻辑预留了结构，但默认未启用定时提交</li>
+<li><code>ChassisDevice</code> 目前更偏向示例桩实现，不是完整底盘驱动</li>
+<li><code>CSV</code> 模式依赖运行目录下存在 <code>imu_data.csv</code></li>
+<li>暂未提供测试、CI 和 Docker 环境</li>
+</ul>
+<h2 id="许可证">许可证</h2>
+<p>本项目使用 Apache-2.0 许可证。详见 <a href="./src/robot_app_pkg/LICENSE">LICENSE</a>。</p>
+
+            
+            
+        </body>
+        </html>
